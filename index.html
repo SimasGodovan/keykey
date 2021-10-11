@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>keykey</title>
+        <style>
+            body {
+                background: #f3f3f3;
+            }
+            #game {
+                display: block;
+                margin: 60px auto 0;
+            }
+        </style>
+        <script type="text/javascript">
+            window.addEventListener('load', function() {
+                const keySpeed = 32;
+                const numberOfKeys = 20;
+
+                const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+                const canvas = document.getElementById("game");
+                const ctx = canvas.getContext("2d");
+                let keys = [];
+
+                const createKey = () => {
+                    const y = randomIntFromInterval(0,896);
+                    const x = randomIntFromInterval(8, 128);
+                    const keyCode = 97 + Math.floor(Math.random() * 26);
+
+                    return {
+                        y,
+                        x,
+                        keyCode,
+                        key: String.fromCharCode(keyCode),
+                        keyY: y + (128 - 35.1875) / 2,
+                        keyX: x + (128 + 32) / 2
+                    };
+                };
+
+                const drawKey = (key) => {
+                    ctx.fillStyle = "#afafaf";
+                    ctx.fillRect(key.y, key.x, 128, 128);
+                    ctx.font = '64px Monospace';
+                    ctx.fillStyle = "#eaeaea";
+                    ctx.fillText(key.key, key.keyY, key.keyX);
+                };
+
+                const drawBoard = () => {
+                    ctx.fillStyle = "#eaeaea";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.strokeStyle = "#ccc";
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                };
+
+                const drawUpdate = () => {
+                    drawBoard();
+
+                    console.log(`keys left ${keys.length}`);
+
+                    keys.forEach((key) => {
+                        drawKey(key);
+                        key.x += keySpeed;
+                        key.keyX += keySpeed;
+                    });
+                };
+
+                const drawResult = (seconds) => {
+                    drawBoard();
+
+                    ctx.font = '64px Monospace';
+                    ctx.fillStyle = "#ccc";
+                    ctx.fillText(`Yay! You did it in ${seconds}s`, 20, 64);
+                    ctx.fillText(`Keys Destroyed: ${numberOfKeys}`, 20, 128);
+                    ctx.fillText(`Game Speed: ${keySpeed}`, 20, 192);
+                };
+
+                for (let i = 0; i < numberOfKeys; i++) {
+                    const key = createKey();
+                    keys.push(key);
+                }
+
+                let lastUpdate = 0;
+                const update = (time = 0) => {
+                    const seconds = parseInt(time / 1000, 10);
+                    if (keys.length > 0) {
+                        if (seconds > lastUpdate) {
+                            lastUpdate = seconds;
+                            drawUpdate();
+                        }
+
+                        requestAnimationFrame(update);
+                    } else {
+                        drawResult(seconds);
+                    }
+                };
+
+                requestAnimationFrame(update);
+
+                document.addEventListener("keyup", (e) => {
+                    const index = keys.findIndex(key => (32 + e.keyCode) === key.keyCode)
+
+                    if (index > -1) {
+                        keys.splice(index, 1);
+                    }
+
+                    event.preventDefault();
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <canvas id="game" width="1024" height="768"></canvas>
+    </body>
+</html>
