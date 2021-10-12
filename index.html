@@ -15,12 +15,14 @@
         </style>
         <script type="text/javascript">
             window.addEventListener('load', function() {
-                const keySpeed = 32;
-                const numberOfKeys = 20;
+                const keySpeed = 64;
+                const numberOfKeys = 1;
 
                 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
                 const canvas = document.getElementById("game");
                 const ctx = canvas.getContext("2d");
+
+                let keyAttempts = 0;
                 let keys = [];
 
                 const createKey = () => {
@@ -68,11 +70,14 @@
                 const drawResult = (seconds) => {
                     drawBoard();
 
+                    const hitAccuracy = Number.parseFloat((numberOfKeys/keyAttempts)*100).toFixed(2);
+
                     ctx.font = '64px Monospace';
                     ctx.fillStyle = "#ccc";
                     ctx.fillText(`Yay! You did it in ${seconds}s`, 20, 64);
                     ctx.fillText(`Keys Destroyed: ${numberOfKeys}`, 20, 128);
                     ctx.fillText(`Game Speed: ${keySpeed}`, 20, 192);
+                    ctx.fillText(`Hit Accuracy: ${hitAccuracy}%`, 20, 256);
                 };
 
                 for (let i = 0; i < numberOfKeys; i++) {
@@ -103,6 +108,8 @@
                     if (index > -1) {
                         keys.splice(index, 1);
                     }
+
+                    keyAttempts++;
 
                     event.preventDefault();
                 });
