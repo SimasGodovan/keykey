@@ -15,19 +15,65 @@
         </style>
         <script type="text/javascript">
             window.addEventListener('load', function() {
-                const keySpeed = 64;
-                const numberOfKeys = 20;
+                // settings
+                const keySpeed = 64; // px/s
+                const fps = 60; // ~166 fps is browser limit
+                const numberOfKeys = 30; // a number, you doofus
+                const headOrTails = true; // game mode: heads - cats; tails - squares
+                const canKeysOverlap = false; // game mode: true - all at once; false - limit to max non-overlapping keys
+                const soundEffects = true; // true: heads - meow; tails - none
 
+                // everything else
+                const fpsFrameLimit = 1000/fps;
                 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
                 const canvas = document.getElementById("game");
                 const ctx = canvas.getContext("2d");
 
+                let headLoaded = false;
+                const headImage = new Image(128,128);
+                headImage.onload = () => headLoaded = true;
+                headImage.src = './img/head1.png';
+
                 let keyAttempts = 0;
                 let keys = [];
+                let keysOverflow = 0;
+                let incrementPerFrame = 0;
 
                 const createKey = () => {
-                    const y = randomIntFromInterval(0,896);
-                    const x = randomIntFromInterval(8, 128);
+                    let y;
+                    let x;
+
+                    const seedXY = () => {
+                        y = randomIntFromInterval(0,896);
+                        x = randomIntFromInterval(8, 128);
+                    };
+
+                    seedXY();
+
+                    if (keys.length > 0 && canKeysOverlap === false) {
+                        let retries = 0;
+                        let overlapping = false;
+
+                        do {
+                            retries++;
+                            overlapping = keys.some((key) => {
+                            	if (x >= (key.x+128) || key.x >= (x+128)) return false;
+                            	if (y >= (key.y+128) || key.y >= (y+128)) return false;
+
+                            	return true;
+                            });
+
+                            if (overlapping) {
+                                seedXY();
+                            }
+                        }
+                        while (retries < 1000 && overlapping === true);
+
+                        if (overlapping) {
+                            throw false;
+                        }
+                    }
+
                     const keyCode = 97 + Math.floor(Math.random() * 26);
 
                     return {
@@ -40,12 +86,27 @@
                     };
                 };
 
-                const drawKey = (key) => {
+                const drawTails = (y, x, key) => {
                     ctx.fillStyle = "#afafaf";
                     ctx.fillRect(key.y, key.x, 128, 128);
                     ctx.font = '64px Monospace';
                     ctx.fillStyle = "#eaeaea";
                     ctx.fillText(key.key, key.keyY, key.keyX);
+                };
+
+                const drawHead = (y, x, key) => {
+                    if (headLoaded) {
+                        ctx.drawImage(headImage, y, x, 128, 128);
+                    }
+                    ctx.font = '64px Monospace';
+                    ctx.fillStyle = "orange";
+                    ctx.fillText(key.key, key.keyY, key.keyX - 72);
+                    ctx.strokeStyle = "black";
+                    ctx.strokeText(key.key, key.keyY, key.keyX - 72);
+                };
+
+                const drawKey = (key) => {
+                    headOrTails ? drawHead(key.y, key.x, key) : drawTails(key.y, key.x, key);
                 };
 
                 const drawBoard = () => {
@@ -58,12 +119,10 @@
                 const drawUpdate = () => {
                     drawBoard();
 
-                    console.log(`keys left ${keys.length}`);
-
                     keys.forEach((key) => {
                         drawKey(key);
-                        key.x += keySpeed;
-                        key.keyX += keySpeed;
+                        key.x += incrementPerFrame;
+                        key.keyX += incrementPerFrame;
                     });
                 };
 
@@ -80,33 +139,60 @@
                     ctx.fillText(`Hit Accuracy: ${hitAccuracy}%`, 20, 256);
                 };
 
+                const safeCreateKey = () => {
+                    try {
+                        const key = createKey();
+                        keys.push(key);
+                    } catch (e) {
+                        keysOverflow++;
+                    }
+                };
+
                 for (let i = 0; i < numberOfKeys; i++) {
-                    const key = createKey();
-                    keys.push(key);
+                    safeCreateKey();
                 }
 
-                let lastUpdate = 0;
-                const update = (time = 0) => {
-                    const seconds = parseInt(time / 1000, 10);
+                let lastUpdate = 0.0;
+                let fullFrameIncrement = 0.0;
+                const update = (time = 0.0) => {
+                    ctx.clearRect(0, 0, ctx.width, ctx.height);
+
                     if (keys.length > 0) {
-                        if (seconds > lastUpdate) {
-                            lastUpdate = seconds;
+                        fullFrameIncrement += time - lastUpdate;
+
+                        if (fullFrameIncrement >= fpsFrameLimit) {
+                            incrementPerFrame = Math.round((fullFrameIncrement * keySpeed) / 1000, 1);
+                            fullFrameIncrement = 0.0;
                             drawUpdate();
                         }
 
+                        lastUpdate = time;
+
                         requestAnimationFrame(update);
                     } else {
-                        drawResult(seconds);
+                        drawResult(parseInt(time / 1000, 10));
                     }
                 };
 
                 requestAnimationFrame(update);
 
+                const reduceOverflowedKeys = () => {
+                    keysOverflow--;
+                    safeCreateKey();
+                };
+
                 document.addEventListener("keyup", (e) => {
-                    const index = keys.findIndex(key => (32 + e.keyCode) === key.keyCode)
+                    const index = keys.findIndex(key => (32 + e.keyCode) === key.keyCode);
 
                     if (index > -1) {
+                        if (soundEffects)
+                            (new Audio('./sound/meow1.fast.wav')).play();
+
                         keys.splice(index, 1);
+
+                        if (keysOverflow > 0) {
+                            reduceOverflowedKeys();
+                        }
                     }
 
                     keyAttempts++;
