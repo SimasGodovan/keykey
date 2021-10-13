@@ -38,6 +38,7 @@
                 let keys = [];
                 let keysOverflow = 0;
                 let incrementPerFrame = 0;
+                let missedKeys = 0;
 
                 const createKey = () => {
                     let y;
@@ -129,7 +130,12 @@
                 const drawResult = (seconds) => {
                     drawBoard();
 
-                    const hitAccuracy = Number.parseFloat((numberOfKeys/keyAttempts)*100).toFixed(2);
+                    const possibleKeys = numberOfKeys - missedKeys;
+                    let hitAccuracy = 0;
+
+                    if (possibleKeys > 0) {
+                        hitAccuracy = Number.parseFloat((possibleKeys/keyAttempts)*100).toFixed(2);
+                    }
 
                     ctx.font = '64px Monospace';
                     ctx.fillStyle = "#ccc";
@@ -148,6 +154,16 @@
                     }
                 };
 
+                const destroyOverRegionKeys = () => {
+                    keys.forEach((key, index) => {
+                        if (key.x > 768) {
+                            missedKeys++;
+                            keys.splice(index, 1);
+                            reduceOverflowedKeys();
+                        }
+                    });
+                };
+
                 for (let i = 0; i < numberOfKeys; i++) {
                     safeCreateKey();
                 }
@@ -164,6 +180,7 @@
                             incrementPerFrame = Math.round((fullFrameIncrement * keySpeed) / 1000, 1);
                             fullFrameIncrement = 0.0;
                             drawUpdate();
+                            destroyOverRegionKeys();
                         }
 
                         lastUpdate = time;
@@ -177,8 +194,10 @@
                 requestAnimationFrame(update);
 
                 const reduceOverflowedKeys = () => {
-                    keysOverflow--;
-                    safeCreateKey();
+                    if (keysOverflow > 0) {
+                        keysOverflow--;
+                        safeCreateKey();
+                    }
                 };
 
                 document.addEventListener("keyup", (e) => {
