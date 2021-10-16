@@ -12,13 +12,17 @@
                 display: block;
                 margin: 60px auto 0;
             }
+
+            #start {
+                cursor: pointer;
+            }
         </style>
         <script type="text/javascript">
             window.addEventListener('load', function() {
                 // settings
                 const keySpeed = 64; // px/s
                 const fps = 60; // ~166 fps is browser limit
-                const numberOfKeys = 5; // a number, you doofus
+                const numberOfKeys = 30; // a number, you doofus
                 const headOrTails = true; // game mode: heads - cats; tails - squares
                 const canKeysOverlap = false; // game mode: true - all at once; false - limit to max non-overlapping keys
                 const soundEffects = true; // true: heads - meow; tails - none
@@ -218,7 +222,7 @@
                     }
                 };
 
-                document.addEventListener("click", () => {
+                startButton.addEventListener("click", () => {
                     reset();
                     requestAnimationFrame(update);
                 });
