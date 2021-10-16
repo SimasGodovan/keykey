@@ -289,6 +289,9 @@
                 };
 
                 drawLevelIntro();
+                const backgroundLoop = new Audio('./sound/game.loop.mp3');
+                backgroundLoop.volume = 0.1;
+                backgroundLoop.loop = true;
 
                 const reduceOverflowedKeys = () => {
                     if (keysOverflow > 0) {
@@ -309,6 +312,8 @@
                     for (let i = 0; i < numberOfKeys; i++) {
                         safeCreateKey();
                     }
+
+                    backgroundLoop.play();
                 };
 
                 startButton.addEventListener("click", () => {
