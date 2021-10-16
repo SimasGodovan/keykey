@@ -256,6 +256,7 @@
 
                 let lastUpdate = 0.0;
                 let fullFrameIncrement = 0.0;
+                let startTime = 0;
                 const update = (time = 0.0) => {
                     ctx.clearRect(0, 0, ctx.width, ctx.height);
 
@@ -273,7 +274,7 @@
 
                         requestAnimationFrame(update);
                     } else {
-                        drawResult(parseInt(time / 1000, 10));
+                        drawResult(parseInt(getPlayTime() / 1000, 10));
                     }
                 };
 
@@ -296,11 +297,14 @@
                     }
                 };
 
+                const getPlayTime = () => (new Date().getTime()) - startTime;
+
                 const reset = () => {
                     keyAttempts = 0;
                     keys = [];
                     keysOverflow = 0;
                     missedKeys = 0;
+                    startTime = (new Date().getTime());
 
                     for (let i = 0; i < numberOfKeys; i++) {
                         safeCreateKey();
