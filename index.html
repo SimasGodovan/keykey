@@ -8,7 +8,7 @@
             body {
                 background: #f3f3f3;
             }
-            #game {
+            #game, #start {
                 display: block;
                 margin: 60px auto 0;
             }
@@ -18,7 +18,7 @@
                 // settings
                 const keySpeed = 64; // px/s
                 const fps = 60; // ~166 fps is browser limit
-                const numberOfKeys = 30; // a number, you doofus
+                const numberOfKeys = 5; // a number, you doofus
                 const headOrTails = true; // game mode: heads - cats; tails - squares
                 const canKeysOverlap = false; // game mode: true - all at once; false - limit to max non-overlapping keys
                 const soundEffects = true; // true: heads - meow; tails - none
@@ -26,6 +26,7 @@
                 // everything else
                 const fpsFrameLimit = 1000/fps;
                 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+                const startButton = document.getElementById("start");
                 const canvas = document.getElementById("game");
                 const ctx = canvas.getContext("2d");
 
@@ -164,10 +165,6 @@
                     });
                 };
 
-                for (let i = 0; i < numberOfKeys; i++) {
-                    safeCreateKey();
-                }
-
                 let lastUpdate = 0.0;
                 let fullFrameIncrement = 0.0;
                 const update = (time = 0.0) => {
@@ -191,7 +188,17 @@
                     }
                 };
 
-                requestAnimationFrame(update);
+                const drawLevelIntro = () => {
+                    drawBoard();
+
+                    ctx.font = '64px Monospace';
+                    ctx.fillStyle = "#ccc";
+                    ctx.fillText(`Level 1 of 1`, 20, 64);
+                    ctx.fillText(`Keys to Destroy: ${numberOfKeys}`, 20, 128);
+                    ctx.fillText(`Game Speed: ${keySpeed}`, 20, 196);
+                };
+
+                drawLevelIntro();
 
                 const reduceOverflowedKeys = () => {
                     if (keysOverflow > 0) {
@@ -199,6 +206,22 @@
                         safeCreateKey();
                     }
                 };
+
+                const reset = () => {
+                    keyAttempts = 0;
+                    keys = [];
+                    keysOverflow = 0;
+                    missedKeys = 0;
+
+                    for (let i = 0; i < numberOfKeys; i++) {
+                        safeCreateKey();
+                    }
+                };
+
+                document.addEventListener("click", () => {
+                    reset();
+                    requestAnimationFrame(update);
+                });
 
                 document.addEventListener("keyup", (e) => {
                     const index = keys.findIndex(key => (32 + e.keyCode) === key.keyCode);
@@ -222,6 +245,7 @@
         </script>
     </head>
     <body>
+        <button id="start">Start</button>
         <canvas id="game" width="1024" height="768"></canvas>
     </body>
 </html>
