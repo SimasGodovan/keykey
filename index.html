@@ -7,14 +7,26 @@
         <style>
             body {
                 background: #f3f3f3;
+                padding: 0px;
+                margin: 0px;
             }
-            #game, #start {
+            #game {
                 display: block;
                 margin: 60px auto 0;
             }
 
-            #start {
+            label, button, input {
                 cursor: pointer;
+            }
+
+            label {
+                user-select: none;
+            }
+
+            #controls {
+                height: 81px;
+                margin: 0 auto;
+                width: 1024px;
             }
 
             #fire {
@@ -110,14 +122,25 @@
                 const numberOfKeys = 30; // a number, you doofus
                 const headOrTails = true; // game mode: heads - cats; tails - squares
                 const canKeysOverlap = false; // game mode: true - all at once; false - limit to max non-overlapping keys
-                const soundEffects = true; // true: heads - meow; tails - none
+                let soundEffects = true; // true: heads - meow; tails - none
 
                 // everything else
                 const fpsFrameLimit = 1000/fps;
                 const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-                const startButton = document.getElementById("start");
+                const controls = document.getElementById("controls");
+                const soundFx = document.getElementById("sound_fx");
                 const canvas = document.getElementById("game");
                 const ctx = canvas.getContext("2d");
+
+                soundFx.addEventListener("change", (e) => {
+                    if (soundEffects && !e.srcElement.checked) {
+                        backgroundLoop.pause();
+                    } else if (!soundEffects && e.srcElement.checked) {
+                        backgroundLoop.play();
+                    }
+
+                    soundEffects = e.srcElement.checked;
+                });
 
                 let inGame = false;
 
@@ -347,7 +370,7 @@
                             missedKeys++;
                             keys.splice(index, 1);
                             reduceOverflowedKeys();
-                            (new Audio('./sound/key.lost.mp3')).play();
+                            soundEffects && (new Audio('./sound/meow1.fast.wav')).play();
                         }
                     });
                 };
@@ -424,10 +447,11 @@
                         safeCreateKey();
                     }
 
-                    backgroundLoop.play();
+                    soundEffects && backgroundLoop.play();
                 };
 
-                startButton.addEventListener("click", () => {
+                controls.addEventListener("submit", (e) => {
+                    e.preventDefault();
                     inGame = true;
                     reset();
                     requestAnimationFrame(update);
@@ -435,12 +459,12 @@
 
                 document.addEventListener("keyup", (e) => {
                     if (inGame) {
-                        (new Audio('./sound/laser.shot.mp3')).play();
+                        soundEffects && (new Audio('./sound/laser.shot.mp3').play());
+
                         const index = keys.findIndex(key => (32 + e.keyCode) === key.keyCode);
 
                         if (index > -1) {
-                            if (soundEffects)
-                                (new Audio('./sound/meow1.fast.wav')).play();
+                            soundEffects && (new Audio('./sound/key.lost.mp3').play());
 
                             const key = keys[index];
                             cleanUpArray();
@@ -456,13 +480,17 @@
                         keyAttempts++;
                     }
 
-                    event.preventDefault();
+                    e.preventDefault();
                 });
             });
         </script>
     </head>
     <body>
-        <button id="start">Start</button>
+        <form id="controls">
+            <label for="sound_fx">Sound</label>
+            <input id="sound_fx" type="checkbox" checked="checked"/>
+            <input id="start" type="submit" label="Start" />
+        </form>
         <canvas id="game" width="1024" height="768"></canvas>
         <div id="fire">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1016px" height="400px" viewBox="0 0 1016 400" enable-background="new 0 0 1016 400" xml:space="preserve">
