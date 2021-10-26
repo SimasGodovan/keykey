@@ -12,7 +12,7 @@ func show_game_over():
 	# Wait until the MessageTimer has counted down.
 	yield($MessageTimer, "timeout")
 
-	$Message.text = "Doge Cat Lasers!"
+	$Message.text = "Dodge Cat Lasers!"
 	$Message.show()
 	# Make a one-shot timer and wait for it to finish.
 	yield(get_tree().create_timer(1), "timeout")
