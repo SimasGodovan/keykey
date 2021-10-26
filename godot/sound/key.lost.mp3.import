@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/key.lost.mp3-d28af7a0354d60924fa1e411e5984c00.mp3str"
+
+[deps]
+
+source_file="res://sound/key.lost.mp3"
+dest_files=[ "res://.import/key.lost.mp3-d28af7a0354d60924fa1e411e5984c00.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0
